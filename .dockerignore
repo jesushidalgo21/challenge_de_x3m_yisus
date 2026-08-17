@@ -1,0 +1,10 @@
+.git
+.env
+.gitignore
+README.md
+DECISIONS.md
+**/__pycache__
+**/*.pyc
+dbt_project/target
+dbt_project/dbt_packages
+dbt_project/logs
