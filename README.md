@@ -30,7 +30,7 @@ docker compose up -d --build
 
 Esperá ~1-2 minutos después del `up`: el healthcheck de Postgres, la migración de Airflow y esa primera corrida automática tardan un poco en encadenarse.
 
-**Opcional** — si además de "ayer" (la corrida automática) querés cargar los datos de "hoy", triggereá el DAG a mano, sin especificar ninguna fecha (usa el momento en que lo corrés):
+**Para ver el particionado por fecha en acción** (la tabla trae una sola fecha hasta acá), triggereá el DAG un par de veces más — cada corrida usa el momento en que la ejecutás, sin especificar fecha:
 
 ```bash
 docker compose exec airflow-scheduler airflow dags trigger product_daily_revenue_dag
