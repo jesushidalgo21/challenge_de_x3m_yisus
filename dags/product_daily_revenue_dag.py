@@ -25,6 +25,12 @@ EXTRACT_TASK_KWARGS = {
     catchup=False,
     default_args={"retries": 0},
     tags=["x3m", "dummyjson"],
+    # dbt_build runs `dbt build` straight against shared Postgres relations
+    # (staging views, the mart table). Two dag runs' dbt processes executing
+    # concurrently -- e.g. during a multi-date backfill -- race on the same
+    # CREATE VIEW/TABLE DDL and one of them fails with "relation already
+    # exists". Serializing dag runs avoids that at the source.
+    max_active_runs=1,
 )
 def product_daily_revenue_dag():
     @task(**EXTRACT_TASK_KWARGS)
