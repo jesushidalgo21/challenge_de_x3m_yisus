@@ -40,6 +40,27 @@ Esperá ~1-2 minutos después del `up` a que el healthcheck de Postgres y la mig
 | Streamlit | http://localhost:8501 | — |
 | Postgres | `localhost:5432` | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` en `.env` |
 
+### Conectarse con un cliente SQL (DBeaver u otro)
+
+El puerto 5432 de Postgres está expuesto al host, así que cualquier cliente SQL se
+conecta directo, sin pasar por Docker:
+
+| Campo | Valor (default de `.env.example`) |
+|---|---|
+| Host | `localhost` |
+| Port | `5432` |
+| Database | `x3m_dw` |
+| Username | `x3m_user` |
+| Password | `changeme` |
+
+(usá tus propios valores si cambiaste el `.env`)
+
+Schemas relevantes dentro de `x3m_dw`:
+
+- `public` — el mart final, `product_daily_revenue`.
+- `public_staging` — modelos de staging (`stg_products`, `stg_cart_items`).
+- `raw` — capa cruda (`raw_products`, `raw_carts`), columna `data` en JSONB.
+
 ## Validación del resultado
 
 ```bash
