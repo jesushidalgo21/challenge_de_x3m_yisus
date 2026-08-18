@@ -18,19 +18,23 @@ El detalle y el razonamiento de cada decisión está en [DECISIONS.md](DECISIONS
 
 - Docker Desktop instalado y corriendo (Docker Engine + Compose v2).
 
-## Levantar todo (3 comandos)
+## Levantar todo (2 comandos)
 
 ```bash
 cp .env.example .env
 docker compose up -d --build
-docker compose exec airflow-scheduler airflow dags backfill product_daily_revenue_dag --start-date 2026-08-12 --end-date 2026-08-16 -y
 ```
 
 1. `.env.example` trae credenciales locales de ejemplo, listas para usar (no hace falta editarlas para levantar el proyecto).
-2. Buildea las imágenes y levanta Postgres, Airflow (init + webserver + scheduler) y Streamlit.
-3. **Backfill explícito**: como la API es estática (ver nota abajo), no hay catchup automático — este comando carga 5 fechas pasadas para que haya histórico visible sin esperar corridas diarias reales. El DAG también corre solo, una vez por día, a partir de acá.
+2. Buildea las imágenes y levanta Postgres, Airflow (init + webserver + scheduler) y Streamlit. El DAG arranca activo (no pausado) — apenas el scheduler lo detecta, corre automáticamente **una vez** para el día completo más reciente (ayer), sin ningún comando adicional. A partir de ahí sigue corriendo solo, una vez por día.
 
-Esperá ~1-2 minutos después del `up` a que el healthcheck de Postgres y la migración de Airflow terminen antes de correr el backfill.
+Esperá ~1-2 minutos después del `up`: el healthcheck de Postgres, la migración de Airflow y esa primera corrida automática tardan un poco en encadenarse.
+
+**Opcional** — si además de "ayer" (la corrida automática) querés cargar los datos de "hoy", triggereá el DAG a mano, sin especificar ninguna fecha (usa el momento en que lo corrés):
+
+```bash
+docker compose exec airflow-scheduler airflow dags trigger product_daily_revenue_dag
+```
 
 ## Acceso a los servicios
 

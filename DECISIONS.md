@@ -72,11 +72,25 @@ parchear DDL puntual era tratar el síntoma. `max_active_runs=1` ataca la causa 
 además es el comportamiento correcto para un batch diario: no hay valor real en
 paralelizar fechas.
 
-### Backfill explícito, no `catchup`
-El backfill es un comando documentado en el README, no un efecto automático del
-scheduler. Con `catchup=True` el resultado depende de cuándo levantó el scheduler
-y de que el DAG no esté pausado — el evaluador podría abrir el dashboard y no ver
-nada sin saber por qué. Como comando explícito, el resultado es determinístico.
+### DAG activo desde el arranque, sin backfill manual
+Primera versión de esta decisión: backfill explícito de 3-5 fechas por comando de
+Airflow, para que al clonar el repo ya hubiera histórico visible sin esperar
+corridas diarias reales. Esa idea no la pedía el challenge (no menciona backfill)
+ni surgió de una necesidad técnica — era una sugerencia que quedó en la consigna
+inicial y no la cuestioné a tiempo. Al revisarla, el costo no se justificaba: para
+sostenerla sin fechas hardcodeadas (que envejecen) hacía falta calcular fechas
+relativas de forma portable entre Linux, macOS y Git Bash — lógica extra para un
+problema que Airflow ya resuelve solo.
+
+Con `catchup=False`, un DAG activo (`is_paused_upon_creation=False`, en vez del
+default de Airflow que arranca todo pausado) genera automáticamente **una**
+corrida para el período diario más reciente ya cerrado apenas el scheduler lo
+detecta — sin comando, sin fechas, sin cálculo. Es más acotado que la versión
+anterior (uno o dos días de historial visible en vez de cinco), pero elimina toda
+la lógica de fechas relativas y baja el README a 2 comandos en vez de 3. Si se
+quiere además el día de hoy, un trigger manual sin especificar fecha
+(`airflow dags trigger`) alcanza — usa el momento de ejecución, así que nunca
+queda desactualizado.
 
 ### Sin dependencias de red en el build
 El constraints file de Airflow está vendorizado en el repo tras un 503 real de
@@ -111,6 +125,11 @@ Lo que corregí o cuestioné a mano:
 - Rechacé alcance no pedido (CI, features extra) cada vez que apareció.
 - Ajusté `pytest` a 7.4.4 al ver que la versión que había pedido chocaba con el
   constraints file de Airflow.
+- El backfill de 3-5 fechas fijas venía de una sugerencia de IA en el prompt
+  inicial que acepté sin cuestionar. Al revisarla más tarde —viendo que
+  sostenerla sin fechas hardcodeadas exigía lógica de cálculo de fechas
+  portable entre shells, para un problema que el challenge ni pedía— la
+  descarté por un DAG activo desde el arranque (ver "Decisiones técnicas").
 
 La verificación final fue clonar el repo pusheado en un directorio limpio y correr
 los tres comandos exactos del README más la query de validación y pytest, aislado
@@ -118,8 +137,10 @@ del entorno de desarrollo — para eliminar cualquier "funciona en mi máquina".
 
 ## 3. Alcance
 
-Verificado end-to-end: backfill de 5 fechas (2026-08-12 a 2026-08-16), 11 tests de
-pytest, tests nativos de dbt incluyendo unicidad del mart, dashboard renderizando
+Verificado end-to-end: cold start desde volumen vacío con los 2 comandos del
+README (corrida automática del día más reciente sin intervención manual, más el
+trigger opcional cargando el día de hoy), 11 tests de pytest, tests nativos de dbt
+incluyendo unicidad del mart, dashboard renderizando
 en browser real, y clon limpio corriendo el README literal.
 
 Fuera de alcance, a propósito:

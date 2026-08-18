@@ -23,6 +23,11 @@ EXTRACT_TASK_KWARGS = {
     schedule="@daily",
     start_date=pendulum.datetime(2026, 1, 1, tz="UTC"),
     catchup=False,
+    # Airflow pauses new DAGs by default. With catchup=False, an active DAG
+    # auto-creates exactly one run for the most recently completed daily
+    # period as soon as the scheduler picks it up -- no manual step needed
+    # to see data after `docker compose up`.
+    is_paused_upon_creation=False,
     default_args={"retries": 0},
     tags=["x3m", "dummyjson"],
     # dbt_build runs `dbt build` straight against shared Postgres relations
