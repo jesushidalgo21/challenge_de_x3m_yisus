@@ -5,11 +5,6 @@ los persiste en Postgres y produce `product_daily_revenue`: revenue vendido por 
 y por fecha. Orquestado con Apache Airflow, transformado con dbt, corre 100% local con
 Docker Compose — sin cloud, sin credenciales externas.
 
-> **Estado actual:** Setup, Implementación (DAG, extracción, modelos dbt, dashboard) y
-> Tests están completos y verificados end-to-end (build, backfill de 2 fechas, query de
-> validación y dashboard corridos de verdad, no solo revisados). Falta completar el
-> contenido de [DECISIONS.md](DECISIONS.md).
-
 ## Arquitectura (resumen)
 
 - **Postgres** (una instancia, dos bases): `x3m_dw` para datos de negocio (raw → staging → mart, vía dbt) y `airflow_meta` para metadata de Airflow.
