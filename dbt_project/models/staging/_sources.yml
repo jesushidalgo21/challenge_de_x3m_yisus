@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: raw_products
+        description: "Daily snapshot of the full GET /products payload (limit=0), one row per load_date."
+      - name: raw_carts
+        description: "Daily snapshot of the full GET /carts payload (limit=0), one row per load_date."

@@ -5,10 +5,10 @@ los persiste en Postgres y produce `product_daily_revenue`: revenue vendido por 
 y por fecha. Orquestado con Apache Airflow, transformado con dbt, corre 100% local con
 Docker Compose — sin cloud, sin credenciales externas.
 
-> **Estado actual (en desarrollo):** el Setup (Docker Compose, imágenes, esqueleto de
-> carpetas) está completo y verificado. La Implementación (DAG, extracción, modelos dbt,
-> dashboard) está en curso. Los comandos y queries de este README reflejan el diseño
-> final y se van validando a medida que el código se completa.
+> **Estado actual:** Setup, Implementación (DAG, extracción, modelos dbt, dashboard) y
+> Tests están completos y verificados end-to-end (build, backfill de 2 fechas, query de
+> validación y dashboard corridos de verdad, no solo revisados). Falta completar el
+> contenido de [DECISIONS.md](DECISIONS.md).
 
 ## Arquitectura (resumen)
 
@@ -61,6 +61,18 @@ sale de los datos** — la genera el pipeline a partir de la fecha lógica de ej
 Airflow (`{{ ds }}` / data interval). Por eso es esperable ver el mismo `revenue` repetido
 en distintas fechas: no es un bug, es el comportamiento documentado de la simulación.
 
+## Tests
+
+```bash
+docker compose exec airflow-scheduler pytest
+```
+
+`pytest` (unit tests: extracción con la API de DummyJSON mockeada, lógica de upsert a
+raw con la conexión a Postgres mockeada) corre en la misma imagen que Airflow, sin
+contenedor ni dependencias aparte. Los tests de calidad de datos "de verdad" (rangos,
+`not_null`, relaciones, unicidad) son los tests nativos de dbt, que ya corren como parte
+de `dbt build` dentro del DAG — no están duplicados acá.
+
 ## Versiones pinneadas
 
 | Componente | Versión |
@@ -70,6 +82,7 @@ en distintas fechas: no es un bug, es el comportamiento documentado de la simula
 | Postgres | 15.6-alpine |
 | dbt-core / dbt-postgres | 1.7.13 |
 | Streamlit | 1.32.0 |
+| pytest | 7.4.4 |
 
 Todas las dependencias (Python, dbt, Airflow) están fijadas en `requirements-airflow.txt`,
 `dbt_project/requirements-dbt.txt`, `streamlit_app/requirements.txt` y el `Dockerfile`. Nada de `latest`.
